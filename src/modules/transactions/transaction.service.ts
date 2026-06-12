@@ -1,5 +1,5 @@
 import { Transaction } from '../../models';
-import { PaginationInput } from './transaction.schemas';
+import { PaginationInput, CreateTransactionInput } from './transaction.schemas';
 
 export async function getUserTransactions(userId: string, pagination: PaginationInput) {
   const { page, limit } = pagination;
@@ -25,4 +25,22 @@ export async function getUserTransactions(userId: string, pagination: Pagination
       hasPrev: page > 1,
     },
   };
+}
+
+export async function createTransaction(userId: string, data: CreateTransactionInput) {
+  return Transaction.create({
+    user_id: userId,
+    title: data.title,
+    category: data.category,
+    amount: data.amount,
+    type: data.type,
+    transaction_date: data.transaction_date ? new Date(data.transaction_date) : new Date(),
+  });
+}
+
+export async function deleteTransaction(userId: string, transactionId: string) {
+  const txn = await Transaction.findOne({ where: { id: transactionId, user_id: userId } });
+  if (!txn) return null;
+  await txn.destroy();
+  return txn;
 }

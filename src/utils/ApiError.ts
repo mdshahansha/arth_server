@@ -19,6 +19,10 @@ export class ApiError extends Error {
     return new ApiError(401, errorCode, message);
   }
 
+  static notFound(message: string, errorCode = 'NOT_FOUND') {
+    return new ApiError(404, errorCode, message);
+  }
+
   static conflict(message: string, errorCode = 'CONFLICT') {
     return new ApiError(409, errorCode, message);
   }
