@@ -7,6 +7,9 @@ import { errorHandler } from './middlewares/errorHandler';
 import { authRoutes } from './modules/auth/auth.routes';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { transactionRoutes } from './modules/transactions/transaction.routes';
+import { walletRoutes } from './modules/wallets/wallet.routes';
+import { tipRoutes } from './modules/tips/tip.routes';
+import { settingsRoutes } from './modules/settings/settings.routes';
 
 const app = express();
 
@@ -22,6 +25,9 @@ app.get('/api/v1/health', (_req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/wallets', walletRoutes);
+app.use('/api/v1/tips', tipRoutes);
+app.use('/api/v1/settings', settingsRoutes);
 
 app.use(errorHandler);
 

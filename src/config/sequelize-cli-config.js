@@ -8,6 +8,7 @@ module.exports = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || '3306', 10),
     dialect: 'mysql',
+    dialectOptions: { ssl: { rejectUnauthorized: false } },
   },
   test: {
     username: process.env.DB_USER,
@@ -16,6 +17,7 @@ module.exports = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || '3306', 10),
     dialect: 'mysql',
+    dialectOptions: { ssl: { rejectUnauthorized: false } },
   },
   production: {
     username: process.env.DB_USER,
@@ -24,5 +26,6 @@ module.exports = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || '3306', 10),
     dialect: 'mysql',
+    dialectOptions: { ssl: { rejectUnauthorized: false } },
   },
 };

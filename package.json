@@ -30,6 +30,8 @@
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.22.5",
+    "pg": "^8.21.0",
+    "pg-hstore": "^2.3.4",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "rate-limit-redis": "^5.0.0",
