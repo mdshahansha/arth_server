@@ -20,9 +20,12 @@ describe('paginationSchema', () => {
     }
   });
 
-  it('rejects limit over 50', () => {
+  it('caps limit at 50', () => {
     const result = paginationSchema.safeParse({ page: '1', limit: '100' });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.limit).toBe(50);
+    }
   });
 
   it('rejects negative page', () => {

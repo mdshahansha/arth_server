@@ -7,11 +7,9 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     testTimeout: 30000,
     hookTimeout: 30000,
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
+    sequence: {
+      concurrent: false,
     },
+    fileParallelism: false,
   },
 });

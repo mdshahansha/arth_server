@@ -2,25 +2,31 @@ import Redis from 'ioredis';
 import { env } from './env';
 import { logger } from '../utils/logger';
 
-const redisOptions: Redis.RedisOptions = {
+const redisConfig: {
+  host: string;
+  port: number;
+  maxRetriesPerRequest: number;
+  password?: string;
+} = {
   host: env.REDIS_HOST,
   port: env.REDIS_PORT,
   maxRetriesPerRequest: 3,
-  lazyConnect: true,
 };
 
 if (env.REDIS_PASSWORD) {
-  redisOptions.password = env.REDIS_PASSWORD;
+  redisConfig.password = env.REDIS_PASSWORD;
 }
 
-export const redis = new Redis(redisOptions);
+export const redis = new Redis(redisConfig);
 
 export async function connectRedis(): Promise<void> {
   try {
-    await redis.connect();
+    const pong = await redis.ping();
+    if (pong !== 'PONG') throw new Error('Redis ping failed');
     logger.info(`Redis connected: ${env.REDIS_HOST}:${env.REDIS_PORT}`);
   } catch (error) {
-    logger.fatal({ error }, 'Unable to connect to Redis');
+    const errMsg = error instanceof Error ? error.message : String(error);
+    logger.fatal(`Unable to connect to Redis: ${errMsg}`);
     process.exit(1);
   }
 }

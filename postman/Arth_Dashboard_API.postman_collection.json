@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "Arth Dashboard API",
-    "description": "Complete API collection for the Arth Dashboard backend.\n\nSetup:\n1. Run Register, then Login\n2. The login response token is auto-saved to the {{token}} variable\n3. All protected endpoints use Bearer {{token}}",
+    "description": "Complete API collection for the Arth Dashboard backend.\n\nHow to use:\n1. Run 'Register' first (or use seeded demo user)\n2. Run 'Login' — token is auto-saved to {{token}}\n3. All protected endpoints automatically use Bearer {{token}}\n\nSeeded demo credentials:\n  Email: demo@example.com\n  Password: Demo@1234",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000/api/v1"
+      "value": "http://localhost:3001/api/v1"
     },
     {
       "key": "token",
@@ -19,28 +19,162 @@
       "name": "Health Check",
       "request": {
         "method": "GET",
-        "url": "{{baseUrl}}/health"
-      }
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the server is running. No auth required."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"status\": \"ok\"\n  },\n  \"message\": \"Server is running\"\n}"
+        }
+      ]
     },
     {
       "name": "Auth",
       "item": [
         {
-          "name": "Register",
+          "name": "Register — Success",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/auth/register",
             "header": [
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Demo User\",\n  \"email\": \"demo@example.com\",\n  \"password\": \"Demo@1234\",\n  \"profileImageUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=demo\"\n}"
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"John@1234\",\n  \"profileImageUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=john\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user.\n\nPassword rules:\n- Min 8 chars\n- At least 1 uppercase\n- At least 1 lowercase\n- At least 1 number\n- At least 1 special character\n\nprofileImageUrl is optional."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"uuid-here\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"profile_image_url\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=john\",\n    \"created_at\": \"2026-06-12T00:00:00.000Z\",\n    \"updated_at\": \"2026-06-12T00:00:00.000Z\"\n  },\n  \"message\": \"User registered successfully\"\n}"
+            },
+            {
+              "name": "409 Email Taken",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"EMAIL_TAKEN\",\n    \"message\": \"A user with this email already exists\"\n  }\n}"
+            },
+            {
+              "name": "400 Validation Error",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Validation failed\",\n    \"details\": [\n      { \"field\": \"password\", \"message\": \"Password must contain at least one uppercase letter\" },\n      { \"field\": \"password\", \"message\": \"Password must contain at least one special character\" }\n    ]\n  }\n}"
             }
+          ]
+        },
+        {
+          "name": "Register — Weak Password (no uppercase)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"weakpass@example.com\",\n  \"password\": \"alllower@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Should return 400 with field-level error: missing uppercase."
           }
         },
         {
-          "name": "Login",
+          "name": "Register — Weak Password (no special char)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"weakpass2@example.com\",\n  \"password\": \"NoSpecial1a\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Should return 400 with field-level error: missing special character."
+          }
+        },
+        {
+          "name": "Register — Invalid Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"not-an-email\",\n  \"password\": \"Test@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Should return 400 with validation error for invalid email format."
+          }
+        },
+        {
+          "name": "Register — Short Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"short@example.com\",\n  \"password\": \"Sh@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Should return 400: password must be at least 8 characters."
+          }
+        },
+        {
+          "name": "Register — Duplicate Email (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo User Duplicate\",\n  \"email\": \"demo@example.com\",\n  \"password\": \"Demo@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Should return 409 EMAIL_TAKEN since demo@example.com is seeded."
+          }
+        },
+        {
+          "name": "Login — Success (Demo User)",
           "event": [
             {
               "listen": "test",
@@ -50,6 +184,7 @@
                   "if (pm.response.code === 200) {",
                   "  const data = pm.response.json();",
                   "  pm.collectionVariables.set('token', data.data.token);",
+                  "  console.log('Token saved:', data.data.token.substring(0, 20) + '...');",
                   "}"
                 ]
               }
@@ -57,25 +192,137 @@
           ],
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/auth/login",
             "header": [
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"Demo@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with seeded demo user.\nToken is auto-saved to {{token}} collection variable via test script."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"user\": {\n      \"id\": \"uuid-here\",\n      \"name\": \"Demo User\",\n      \"email\": \"demo@example.com\",\n      \"profile_image_url\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=demo\",\n      \"created_at\": \"2026-06-12T00:00:00.000Z\",\n      \"updated_at\": \"2026-06-12T00:00:00.000Z\"\n    }\n  },\n  \"message\": \"Login successful\"\n}"
             }
+          ]
+        },
+        {
+          "name": "Login — Wrong Password (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"WrongPassword@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Should return 401 with generic 'Invalid email or password' (prevents user enumeration)."
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"INVALID_CREDENTIALS\",\n    \"message\": \"Invalid email or password\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login — Non-existent User (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nobody@example.com\",\n  \"password\": \"Any@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Should return same 401 message as wrong password (no user enumeration)."
           }
         },
         {
-          "name": "Logout",
+          "name": "Login — Missing Fields (400)",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/auth/logout",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Should return 400 VALIDATION_ERROR with field-level details."
+          }
+        },
+        {
+          "name": "Logout — Success",
+          "request": {
+            "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
-            ]
-          }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout invalidates the JWT session in Redis.\nAfter this, the same token returns 401 SESSION_REVOKED on any protected endpoint."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": null,\n  \"message\": \"Logged out successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout — No Token (401)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Should return 401 TOKEN_MISSING."
+          },
+          "response": [
+            {
+              "name": "401 Token Missing",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"TOKEN_MISSING\",\n    \"message\": \"Authorization token is required\"\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -83,14 +330,63 @@
       "name": "Dashboard",
       "item": [
         {
-          "name": "Get Dashboard",
+          "name": "Get Dashboard — Success",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/dashboard",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
-            ]
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard"]
+            },
+            "description": "Returns user profile + spend statistics:\n- Total spend (sum of debits)\n- Total income (sum of credits)\n- Monthly breakdown for last 6 months (chart data)\n- Category-wise spend breakdown\n\nRequires valid JWT token."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"uuid-here\",\n      \"name\": \"Demo User\",\n      \"email\": \"demo@example.com\",\n      \"profile_image_url\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=demo\"\n    },\n    \"totalSpend\": 56496.25,\n    \"totalIncome\": 191065.77,\n    \"monthlyBreakdown\": [\n      { \"month\": \"2025-12\", \"debit\": 1739.97, \"credit\": 47429.46 },\n      { \"month\": \"2026-01\", \"debit\": 15086.00, \"credit\": 22623.80 },\n      { \"month\": \"2026-02\", \"debit\": 5723.87, \"credit\": 34266.56 },\n      { \"month\": \"2026-03\", \"debit\": 8869.12, \"credit\": 22810.77 },\n      { \"month\": \"2026-04\", \"debit\": 9837.97, \"credit\": 33472.55 },\n      { \"month\": \"2026-05\", \"debit\": 10582.65, \"credit\": 16533.11 },\n      { \"month\": \"2026-06\", \"debit\": 4656.67, \"credit\": 13929.52 }\n    ],\n    \"categoryBreakdown\": [\n      { \"category\": \"entertainment\", \"amount\": 16998.44 },\n      { \"category\": \"travel\", \"amount\": 16666.93 },\n      { \"category\": \"shopping\", \"amount\": 9952.79 },\n      { \"category\": \"bills\", \"amount\": 8979.47 },\n      { \"category\": \"food\", \"amount\": 3898.62 }\n    ]\n  },\n  \"message\": \"Dashboard data retrieved\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Dashboard — No Token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard"]
+            },
+            "description": "Should return 401 TOKEN_MISSING."
           }
+        },
+        {
+          "name": "Get Dashboard — Revoked Token (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer expired-or-revoked-token-here" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard"]
+            },
+            "description": "Should return 401 TOKEN_INVALID or SESSION_REVOKED."
+          },
+          "response": [
+            {
+              "name": "401 Session Revoked",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"SESSION_REVOKED\",\n    \"message\": \"Session has been revoked\"\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -98,9 +394,12 @@
       "name": "Transactions",
       "item": [
         {
-          "name": "Get Transactions (page 1)",
+          "name": "Get Transactions — Page 1 (default)",
           "request": {
             "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
             "url": {
               "raw": "{{baseUrl}}/transactions?page=1&limit=10",
               "host": ["{{baseUrl}}"],
@@ -110,15 +409,24 @@
                 { "key": "limit", "value": "10" }
               ]
             },
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ]
-          }
+            "description": "Paginated transactions sorted by transaction_date DESC.\n\nQuery params:\n- page: positive integer (default: 1)\n- limit: 1-50 (default: 10, max: 50)\n\nResponse includes pagination metadata."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [\n      {\n        \"id\": \"uuid-here\",\n        \"user_id\": \"user-uuid\",\n        \"title\": \"Water Bill\",\n        \"category\": \"bills\",\n        \"amount\": \"1514.44\",\n        \"type\": \"debit\",\n        \"transaction_date\": \"2026-06-10T02:50:23.000Z\",\n        \"created_at\": \"2026-06-11T15:10:50.000Z\",\n        \"updated_at\": \"2026-06-11T15:10:50.000Z\"\n      },\n      {\n        \"id\": \"uuid-here-2\",\n        \"user_id\": \"user-uuid\",\n        \"title\": \"Book Store\",\n        \"category\": \"shopping\",\n        \"amount\": \"13929.52\",\n        \"type\": \"credit\",\n        \"transaction_date\": \"2026-06-06T12:23:28.000Z\",\n        \"created_at\": \"2026-06-11T15:10:50.000Z\",\n        \"updated_at\": \"2026-06-11T15:10:50.000Z\"\n      }\n    ],\n    \"pagination\": {\n      \"page\": 1,\n      \"limit\": 10,\n      \"totalItems\": 48,\n      \"totalPages\": 5,\n      \"hasNext\": true,\n      \"hasPrev\": false\n    }\n  },\n  \"message\": \"Transactions retrieved\"\n}"
+            }
+          ]
         },
         {
-          "name": "Get Transactions (page 2)",
+          "name": "Get Transactions — Page 2",
           "request": {
             "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
             "url": {
               "raw": "{{baseUrl}}/transactions?page=2&limit=10",
               "host": ["{{baseUrl}}"],
@@ -128,10 +436,141 @@
                 { "key": "limit", "value": "10" }
               ]
             },
+            "description": "Second page of transactions. hasPrev should be true."
+          }
+        },
+        {
+          "name": "Get Transactions — Custom Limit (5)",
+          "request": {
+            "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
-            ]
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?page=1&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "5" }
+              ]
+            },
+            "description": "Returns only 5 items per page."
           }
+        },
+        {
+          "name": "Get Transactions — Max Limit (50)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "Maximum allowed limit. Requesting limit > 50 gets capped to 50."
+          }
+        },
+        {
+          "name": "Get Transactions — Limit Over 50 (capped)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?page=1&limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "100" }
+              ]
+            },
+            "description": "Limit is silently capped to 50. Returns 200 with max 50 items."
+          }
+        },
+        {
+          "name": "Get Transactions — Out of Range Page",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?page=999&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"],
+              "query": [
+                { "key": "page", "value": "999" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Returns 200 with empty items array and hasNext: false."
+          },
+          "response": [
+            {
+              "name": "200 Empty Page",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [],\n    \"pagination\": {\n      \"page\": 999,\n      \"limit\": 10,\n      \"totalItems\": 48,\n      \"totalPages\": 5,\n      \"hasNext\": false,\n      \"hasPrev\": true\n    }\n  },\n  \"message\": \"Transactions retrieved\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Transactions — No Token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Should return 401 TOKEN_MISSING."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rate Limiting",
+      "item": [
+        {
+          "name": "Login — Rate Limited (429)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"WrongPass@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "After 5 failed attempts within 15 minutes, the 6th request returns 429.\n\nRate limit: 5 requests per 15 minutes per IP.\nApplied to /auth/login and /auth/register only.\n\nTo test: run this request 6 times rapidly."
+          },
+          "response": [
+            {
+              "name": "429 Too Many Requests",
+              "status": "Too Many Requests",
+              "code": 429,
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"RATE_LIMIT_EXCEEDED\",\n    \"message\": \"Too many requests. Please try again after 15 minutes.\"\n  }\n}"
+            }
+          ]
         }
       ]
     }
