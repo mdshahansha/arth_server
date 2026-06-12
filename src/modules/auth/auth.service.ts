@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { User } from '../../models';
 import { redis } from '../../config/redis';
 import { env } from '../../config/env';
@@ -70,7 +70,7 @@ export async function loginUser(input: LoginInput, userAgent: string) {
     throw ApiError.unauthorized(INVALID_CREDENTIALS_MSG, 'INVALID_CREDENTIALS');
   }
 
-  const jti = uuidv4();
+  const jti = randomUUID();
   const ttlSeconds = getTokenTtlSeconds();
   const token = jwt.sign({ sub: user.id, jti }, env.JWT_SECRET, {
     expiresIn: ttlSeconds,
