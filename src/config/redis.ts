@@ -27,7 +27,7 @@ const redisConfig: {
         maxRetriesPerRequest: 3,
       };
 
-if (env.REDIS_PASSWORD) {
+if (!redisUrl && env.REDIS_PASSWORD) {
   redisConfig.password = env.REDIS_PASSWORD;
 }
 
