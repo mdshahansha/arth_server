@@ -24,6 +24,8 @@ export const sequelize = new Sequelize(dbName, env.DB_USER, env.DB_PASSWORD, {
 export async function connectDatabase(): Promise<void> {
   try {
     await sequelize.authenticate();
+  // await sequelize.sync({ alter: true });
+
     logger.info(`Database connected: ${dbName}@${env.DB_HOST}:${env.DB_PORT}`);
   } catch (error) {
     logger.fatal({ error }, 'Unable to connect to database');
